@@ -1,0 +1,12 @@
+Library
+Documents
+Downloads
+Desktop
+Applications
+.cache
+.local
+node_modules
+.git
+dist
+build
+target

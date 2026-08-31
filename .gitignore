@@ -1,0 +1,19 @@
+*
+!.gitignore
+
+# Cho phép tất cả file/thư mục bắt đầu bằng dấu .
+!.*
+
+# Nhưng bỏ thư mục git của chính repo
+.git/
+
+# Bỏ cache, local state
+.DS_Store
+.zcompdump*
+.zsh_history
+
+# Nếu có thư mục rất lớn
+!.config/
+
+.Trash/
+.viminfo
