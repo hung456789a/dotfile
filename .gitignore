@@ -1,8 +1,15 @@
-*
+/*
+!/.*
 !.gitignore
+!/.*
+.windsurf
+.devin
+.minikube
+.azure/
+.cache/
+.codeium/
+.local
 
-# Cho phép tất cả file/thư mục bắt đầu bằng dấu .
-!.*
 
 # Nhưng bỏ thư mục git của chính repo
 .git/
