@@ -1,0 +1,94 @@
+# =============================================================
+# SETUP COMMANDS - khôi phục & cấu hình lại môi trường (09/2026)
+# Ghi lại toàn bộ lệnh đã dùng sau sự cố mất file config
+# (nguyên nhân: git init trong $HOME + git reset --hard)
+# =============================================================
+
+# -------------------------------------------------------------
+# 1. Khôi phục ~/.kube/config (từ backup ~/config.az)
+# -------------------------------------------------------------
+cp ~/config.az ~/.kube/config
+chmod 600 ~/.kube/config
+kubectl config get-contexts
+
+# Nếu credentials hết hạn, lấy lại từ Azure:
+# az login
+# az aks get-credentials -g rg-shared-dev-weu -n aks-ai-dev-weu
+# az aks get-credentials -g rg-shared-stage-weu -n aks-ai-stage-weu
+
+# Lấy lại context Rancher (chưa làm):
+# rancher login https://rancher-mgt.housingapps.sa/k8s/clusters/c-m-6ktvfl5g
+
+# -------------------------------------------------------------
+# 2. Khôi phục tmux config (từ repo github.com/hung456789a/dotfile)
+# -------------------------------------------------------------
+git clone --depth 1 https://github.com/hung456789a/dotfile.git /tmp/dotfile-recover
+cp /tmp/dotfile-recover/.tmux.conf ~/.tmux.conf
+
+# Sau đó viết lại config đầy đủ tại ~/.config/tmux/tmux.conf
+# (thêm TPM init, plugins, popup bindings, resize keys)
+# ~/.tmux.conf giờ chỉ còn 1 dòng: source-file ~/.config/tmux/tmux.conf
+tmux source-file ~/.config/tmux/tmux.conf
+
+# -------------------------------------------------------------
+# 3. Tạo lại tmux popup scripts
+# -------------------------------------------------------------
+mkdir -p ~/.tmux/scripts
+# Tạo 3 file:
+#   ~/.tmux/scripts/kube-popup.sh        (fzf chọn context -> k9s)
+#   ~/.tmux/scripts/gitlab-popup.sh      (menu glab: mr/ci/issue)
+#   ~/.tmux/scripts/prometheus-popup.sh  (port-forward prometheus :9090)
+chmod +x ~/.tmux/scripts/*.sh
+
+# Keybindings trong tmux.conf:
+#   prefix + t      terminal popup
+#   prefix + g      lazygit
+#   prefix + C-k    kube popup
+#   prefix + C-g    gitlab popup
+#   prefix + C-p    prometheus popup
+
+# -------------------------------------------------------------
+# 4. Khôi phục các dotfiles khác (từ repo dotfile)
+# -------------------------------------------------------------
+cd /tmp/dotfile-recover
+cp .gitconfig .zprofile .fdignore .p10k.zsh ~/
+
+# -------------------------------------------------------------
+# 5. Kubectl aliases
+# -------------------------------------------------------------
+mkdir -p ~/.config/zsh
+# Tạo ~/.config/zsh/aliases.zsh (k, kgp, kl, kx, kctx, kns, klp, kxp,
+# knhc = kubectl --context aks-ai-prod-weu -n nhc-property-cockpit, ...)
+# Thêm vào cuối ~/.zshrc:
+#   source ~/.config/zsh/aliases.zsh
+
+# -------------------------------------------------------------
+# 6. Dotfiles bare repo (tránh lặp lại sự cố git trong $HOME)
+# -------------------------------------------------------------
+git clone --bare https://github.com/hung456789a/dotfile.git ~/.dotfiles
+git --git-dir=$HOME/.dotfiles --work-tree=$HOME config status.showUntrackedFiles no
+
+# Alias (đã có trong ~/.config/zsh/aliases.zsh):
+#   alias dot='git --git-dir=$HOME/.dotfiles --work-tree=$HOME'
+
+# Đồng bộ index lần đầu (index bare repo trống):
+dot reset
+
+# Gỡ gitlink .oh-my-zsh (là git repo riêng, không track được file bên trong):
+dot rm -r --cached .oh-my-zsh
+
+# Workflow hằng ngày:
+#   dot status                 # xem thay đổi (chỉ file đã track)
+#   dot add <file>             # track file mới (opt-in, phải add tường minh)
+#   dot rm --cached <file>     # bỏ track, giữ file trên máy
+#   dot commit -m "..."
+#   dot push origin main
+
+# -------------------------------------------------------------
+# 7. Việc còn tồn đọng
+# -------------------------------------------------------------
+# - az login
+# - rancher login (context sakani-nonprd)
+# - Dọn file rác đã commit từ trước: .bash_history, .docker/.token_seed,
+#   .rediscli_history, .lesshst, .wget-hsts... (dot rm --cached)
+# - Cân nhắc chuyển repo dotfile sang private
